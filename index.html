@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pz studio - 旧烽台纪事</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #6e45e2, #88d3ce);
+            padding: 20px;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .player {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 30px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.1),
+                inset 0 1px 2px rgba(255, 255, 255, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .player::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(45deg);
+            animation: shine 8s infinite linear;
+            pointer-events: none;
+        }
+        
+        @keyframes shine {
+            0% {
+                transform: translateX(-100%) rotate(45deg);
+            }
+            100% {
+                transform: translateX(100%) rotate(45deg);
+            }
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo {
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logo i {
+            color: #ffd700;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 30px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cover-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .album-art-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin-bottom: 25px;
+        }
+        
+        .album-art {
+            width: 100%;
+            height: 100%;
+            border-radius: 16px;
+            object-fit: cover;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .album-art-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .album-art-container:hover .album-art-overlay {
+            opacity: 1;
+        }
+        
+        .song-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        .artist {
+            font-size: 18px;
+            opacity: 0.9;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .lyrics-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-height: 400px;
+        }
+        
+        .lyrics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .lyrics-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .view-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .view-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .lyrics-container {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        
+        .lyric-line {
+            margin: 15px 0;
+            font-size: 18px;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+            text-align: center;
+        }
+        
+        .lyric-line.active {
+            opacity: 1;
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+        
+        .controls-section {
+            margin-top: 30px;
+            position: relative;
+            z-index: 2;
+            width: 100%;
+        }
+        
+        .progress-container {
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        
+        .progress {
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4);
+            border-radius: 10px;
+            transition: width 0.1s linear;
+        }
+        
+        .time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .control-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .play-pause {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .play-pause:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .volume-icon {
+            font-size: 20px;
+            opacity: 0.8;
+        }
+        
+        .volume-slider {
+            flex: 1;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.7;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .album-art-container {
+                width: 220px;
+                height: 220px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .artist {
+                font-size: 16px;
+            }
+            
+            .lyrics-container {
+                max-height: 250px;
+            }
+            
+            .lyric-line {
+                font-size: 16px;
+            }
+            
+            .lyric-line.active {
+                font-size: 18px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .player {
+                padding: 20px;
+            }
+            
+            .album-art-container {
+                width: 180px;
+                height: 180px;
+            }
+            
+            .title {
+                font-size: 22px;
+            }
+            
+            .controls {
+                gap: 15px;
+            }
+            
+            .control-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            
+            .play-pause {
+                width: 50px;
+                height: 50px;
+            }
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: rgba(255, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="player">
+            <div class="header">
+                <div class="logo">
+                    <i class="fas fa-music"></i>
+                    <span>pz studio</span>
+                </div>
+                <div class="settings">
+                    <i class="fas fa-cog"></i>
+                </div>
+            </div>
+            
+            <div class="main-content">
+                <div class="cover-section" id="coverSection">
+                    <div class="album-art-container">
+                        <img id="coverImage" class="album-art" src="https://images.unsplash.com/photo-1511379938547-c1f69419868d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="专辑封面">
+                        <div class="album-art-overlay">
+                            <i class="fas fa-play-circle" style="font-size: 48px; color: rgba(255, 255, 255, 0.8);"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="song-info">
+                        <h1 class="title">旧烽台纪事</h1>
+                        <p class="artist">pz students</p>
+                    </div>
+                    
+                    <div class="view-toggle">
+                        <button id="coverViewBtn" class="view-btn active">
+                            <i class="fas fa-image"></i> 封面视图
+                        </button>
+                        <button id="lyricsViewBtn" class="view-btn">
+                            <i class="fas fa-align-left"></i> 歌词视图
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="lyrics-section hidden" id="lyricsSection">
+                    <div class="lyrics-header">
+                        <h2 class="lyrics-title">歌词</h2>
+                        <div class="view-toggle">
+                            <button id="scrollModeBtn" class="view-btn active">
+                                <i class="fas fa-scroll"></i> 滚动模式
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="lyrics-container" id="lyricsContainer">
+                        <div class="loading" id="lyricsLoading">
+                            <div class="loading-spinner"></div>
+                        </div>
+                        <div id="lyricsContent" class="hidden"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls-section">
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                    <div class="time">
+                        <span id="currentTime">00:00</span>
+                        <span id="totalTime">00:00</span>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="control-btn">
+                        <i class="fas fa-step-backward"></i>
+                    </button>
+                    <button class="control-btn play-pause" id="playPauseBtn">
+                        <i class="fas fa-play" id="playIcon"></i>
+                    </button>
+                    <button class="control-btn">
+                        <i class="fas fa-step-forward"></i>
+                    </button>
+                </div>
+                
+                <div class="volume-control">
+                    <i class="fas fa-volume-up volume-icon"></i>
+                    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>© 2023 液态玻璃播放器 | 歌曲: 旧烽台纪事 - pz students</p>
+            </div>
+        </div>
+    </div>
+
+    <audio id="audioPlayer" preload="metadata"></audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const audioPlayer = document.getElementById('audioPlayer');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const playIcon = document.getElementById('playIcon');
+            const progressBar = document.getElementById('progressBar');
+            const progress = document.getElementById('progress');
+            const currentTimeEl = document.getElementById('currentTime');
+            const totalTimeEl = document.getElementById('totalTime');
+            const volumeSlider = document.getElementById('volumeSlider');
+            const lyricsContainer = document.getElementById('lyricsContent');
+            const lyricsLoading = document.getElementById('lyricsLoading');
+            const coverViewBtn = document.getElementById('coverViewBtn');
+            const lyricsViewBtn = document.getElementById('lyricsViewBtn');
+            const coverSection = document.getElementById('coverSection');
+            const lyricsSection = document.getElementById('lyricsSection');
+            const scrollModeBtn = document.getElementById('scrollModeBtn');
+            
+            let isPlaying = false;
+            let isScrolling = true;
+            let lyricsData = [];
+            
+            // 设置音频源
+            audioPlayer.src = '旧烽台纪事.mp3';
+            
+            // 使用提供的LRC歌词内容
+            const lrcText = `[length: 02:30.960]
+[ti: 旧烽台纪事]
+[ar: pz students]
+[al: pzzx-jf]
+[tool: 歌词滚动姬 https://lrc-maker.github.io]
+[00:12.670] 石阶上的训话，隔着云端的塔
+[00:15.679] 您说幼苗该攀爬，却忘了弯腰倾听破土的沙
+[00:19.699] 纸条在课桌底下，写满饥饿的涂鸦
+[00:22.899] 而话筒依然重复，千年不变的语法
+[00:26.300] 你说规矩是棱角，要磨平所有枝杈
+[00:29.809] 可食堂的长龙，蜿蜒成沉默的疤
+[00:32.640] 油花飘着三片菜叶，号称十八道工序的繁华
+[00:37.399] 凉拌隔夜梦，红烧敷衍话
+[00:41.849] 旧烽台高筑啊！象牙塔坍垮！
+[00:44.889] 育人之名供奉着，形式主义的鸦！
+[00:47.917] 我们举着餐盘，在泔水桶里找春天发芽！
+[00:54.029] 倒掉半勺酸涩！咽下半勺沙！
+[01:10.369] 白色餐盒堆成山，在烈日下发酵酸楚的童话
+[01:16.499] 垃圾分类是理想，现实只配一个投放点挣扎
+[01:22.340] 穿越整个球场，提着馊味的尴尬
+[01:26.389] 像场行为艺术，嘲讽所谓的教化
+[01:29.650] 训话声又响起，说勤俭是美德啊
+[01:33.319] 可馊饭的滋味，配不上热忱的年华
+[01:36.829] 分流牌摆成迷宫，饥饿在胃里打架
+[01:39.639] 您却说这叫做，历练的代价
+[01:42.468] 旧烽台高筑啊！象牙塔坍垮！
+[01:45.449] 育人之名供奉着，形式主义的鸦！
+[01:48.629] 我们举着餐盘，在泔水桶里找春天发芽！
+[01:53.789] 倒掉半勺酸涩！咽下半勺沙！
+[02:02.789] 当落叶塞满唯一的垃圾桶口
+[02:04.889] 有通知翩然落下...
+[02:08.190] «关于加强素质教育的...若干要求»`;
+            
+            // 解析LRC歌词
+            lyricsData = parseLRC(lrcText);
+            renderLyrics(lyricsData);
+            lyricsLoading.classList.add('hidden');
+            lyricsContainer.classList.remove('hidden');
+            
+            // 解析LRC歌词
+            function parseLRC(lrcText) {
+                const lines = lrcText.split('\n');
+                const result = [];
+                
+                lines.forEach(line => {
+                    // 匹配时间标签 [mm:ss.xx]
+                    const timeMatch = line.match(/\[(\d+):(\d+)\.(\d+)\]/);
+                    if (timeMatch) {
+                        const minutes = parseInt(timeMatch[1]);
+                        const seconds = parseInt(timeMatch[2]);
+                        const milliseconds = parseInt(timeMatch[3]);
+                        
+                        // 转换为秒
+                        const timeInSeconds = minutes * 60 + seconds + milliseconds / 100;
+                        
+                        // 提取歌词文本
+                        const text = line.replace(timeMatch[0], '').trim();
+                        
+                        if (text) {
+                            result.push({ time: timeInSeconds, text });
+                        }
+                    }
+                });
+                
+                return result;
+            }
+            
+            // 渲染歌词
+            function renderLyrics(lyrics) {
+                lyricsContainer.innerHTML = '';
+                
+                lyrics.forEach((line, index) => {
+                    const p = document.createElement('p');
+                    p.className = 'lyric-line';
+                    p.textContent = line.text;
+                    p.dataset.time = line.time;
+                    lyricsContainer.appendChild(p);
+                });
+            }
+            
+            // 播放/暂停功能
+            playPauseBtn.addEventListener('click', function() {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                } else {
+                    audioPlayer.pause();
+                }
+            });
+            
+            // 音频加载完成时更新总时长
+            audioPlayer.addEventListener('loadedmetadata', function() {
+                const duration = audioPlayer.duration;
+                const minutes = Math.floor(duration / 60);
+                const seconds = Math.floor(duration % 60);
+                totalTimeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            });
+            
+            // 音频时间更新
+            audioPlayer.addEventListener('timeupdate', function() {
+                const currentTime = audioPlayer.currentTime;
+                const duration = audioPlayer.duration;
+                
+                // 更新进度条
+                const progressPercent = (currentTime / duration) * 100;
+                progress.style.width = `${progressPercent}%`;
+                
+                // 更新时间显示
+                const minutes = Math.floor(currentTime / 60);
+                const seconds = Math.floor(currentTime % 60);
+                currentTimeEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // 更新歌词高亮
+                updateLyricsHighlight(currentTime);
+            });
+            
+            // 音频播放状态变化
+            audioPlayer.addEventListener('play', function() {
+                isPlaying = true;
+                playIcon.classList.remove('fa-play');
+                playIcon.classList.add('fa-pause');
+            });
+            
+            audioPlayer.addEventListener('pause', function() {
+                isPlaying = false;
+                playIcon.classList.remove('fa-pause');
+                playIcon.classList.add('fa-play');
+            });
+            
+            // 视图切换
+            coverViewBtn.addEventListener('click', function() {
+                coverViewBtn.classList.add('active');
+                lyricsViewBtn.classList.remove('active');
+                coverSection.classList.remove('hidden');
+                lyricsSection.classList.add('hidden');
+            });
+            
+            lyricsViewBtn.addEventListener('click', function() {
+                lyricsViewBtn.classList.add('active');
+                coverViewBtn.classList.remove('active');
+                coverSection.classList.add('hidden');
+                lyricsSection.classList.remove('hidden');
+            });
+            
+            // 滚动模式切换
+            scrollModeBtn.addEventListener('click', function() {
+                isScrolling = !isScrolling;
+                scrollModeBtn.classList.toggle('active', isScrolling);
+            });
+            
+            // 音量控制
+            volumeSlider.addEventListener('input', function() {
+                const volume = this.value / 100;
+                audioPlayer.volume = volume;
+            });
+            
+            // 进度条点击
+            progressBar.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const clickPosition = (e.clientX - rect.left) / rect.width;
+                const duration = audioPlayer.duration;
+                audioPlayer.currentTime = duration * clickPosition;
+            });
+            
+            // 更新歌词高亮
+            function updateLyricsHighlight(currentTime) {
+                const lyricLines = document.querySelectorAll('.lyric-line');
+                let activeIndex = -1;
+                
+                // 找到当前时间对应的歌词
+                for (let i = 0; i < lyricsData.length; i++) {
+                    // 如果当前时间大于等于歌词时间，并且不是最后一行，则检查下一行
+                    if (currentTime >= lyricsData[i].time && 
+                        (i === lyricsData.length - 1 || currentTime < lyricsData[i + 1].time)) {
+                        activeIndex = i;
+                        break;
+                    }
+                }
+                
+                // 更新歌词高亮
+                lyricLines.forEach((line, index) => {
+                    if (index === activeIndex) {
+                        line.classList.add('active');
+                        // 如果开启了滚动模式，确保当前歌词在可视区域内
+                        if (isScrolling) {
+                            line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    } else {
+                        line.classList.remove('active');
+                    }
+                });
+            }
+            
+            // 初始设置
+            audioPlayer.volume = 0.8;
+        });
+    </script>
+</body>
+</html>
